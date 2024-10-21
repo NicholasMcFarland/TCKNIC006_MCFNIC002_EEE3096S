@@ -35,7 +35,22 @@ ASM_Main:
 @ TODO: Add code, labels and logic for button checks and LED patterns
 main_loop:
     LDR R3, [R0, #0x10]      @ Read GPIOA input register
+    MOVS R4, #0b0011         @ SW0 mask (assuming SW0 is on PA0)
+    TST R3, R4
+    BEQ sw0andsw1_pressed
+    MOVS R4, #0b0001
+    TST R3, R4               @ Test if SW0 is pressed
+    BEQ sw0_pressed           @ If SW0 is not pressed, check SW1
+    MOVS R4, #0b0010
+    TST R3, R4
+    BEQ sw1_pressed
+	MOVS R4, #0b0100
+    TST R3, R4
+    BEQ sw2_pressed
 
+    MOVS R4, #0b1000
+    TST R3, R4
+    BEQ sw3_pressed
     B default
 
 default:
@@ -48,8 +63,51 @@ default:
 
 	B main_loop
 
+sw0andsw1_pressed:
+	STR R2, [R1, #0x14]      @ Write the current LED pattern to GPIOB ODR
+	BL delay_03s             @ Call delay function for 0.3 seconds
+	ADDS R2, R2, #2          @ Increment the LED count by 2 (binary count)
+	@ Check if R2 has reached the maximum binary count
+	CMP R2, #0b11111111      @ Compare with LED7 (0x80)
+	BGT reset_leds           @ If greater than LED7, reset the LEDs
+
+	B main_loop
+
+sw0_pressed:
+	STR R2, [R1, #0x14]      @ Write the current LED pattern to GPIOB ODR
+	BL delay_07s             @ Call delay function for 0.7 seconds
+	ADDS R2, R2, #2          @ Increment the LED count by 2 (binary count)
+	@ Check if R2 has reached the maximum binary count
+	CMP R2, #0b11111111      @ Compare with LED7 (0x80)
+	BGT reset_leds           @ If greater than LED7, reset the LEDs
+
+	B main_loop
+
+sw1_pressed:
+	STR R2, [R1, #0x14]      @ Write the current LED pattern to GPIOB ODR
+	BL delay_03s             @ Call delay function for 0.3 seconds
+	ADDS R2, R2, #1          @ Increment the LED count by 1 (binary count)
+	@ Check if R2 has reached the maximum binary count
+	CMP R2, #0b11111111      @ Compare with LED7 (0x80)
+	BGT reset_leds           @ If greater than LED7, reset the LEDs
+
+	B main_loop
+
+sw2_pressed:
+	MOVS R5, #0xAA           @ Set a specific pattern on the LEDs (e.g., 10101010)
+	STR R5, [R1, #0x14]
+	B main_loop
+
+sw3_pressed:
+	B main_loop
+
+reset_leds:
+	MOVS R2, #0              @ Reset to LED0 (bit 0 set)
+	B main_loop               @ Repeat the loop indefinitely
+
 @ TODO: Add your own values for these delays
 
+@ 0.7 second delay function (approx.)
 delay_07s:
     LDR R3, DELAY_COUNT_07S   @ Load the delay count value from memory
 	B delay_loop
@@ -69,6 +127,6 @@ GPIOA_BASE:  		.word 0x48000000
 GPIOB_BASE:  		.word 0x48000400
 MODER_OUTPUT: 		.word 0x5555
 
-DELAY_COUNT_07S:  	.word 1000000            @ Approximate delay count for 0.7 second
-DELAY_COUNT_03S:	.word 300000             @ 0.3 second
-
+SW0_MASK:			.word 0b00000001
+DELAY_COUNT_07S:  	.word 1000000            @ Approximate delay count for 1 second
+DELAY_COUNT_03S:	.word 300000
