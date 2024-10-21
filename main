@@ -39,6 +39,16 @@ ASM_Main:
 
 @ TODO: Add your own values for these delays
 
+delay_07s:
+    LDR R3, DELAY_COUNT_07S   @ Load the delay count value from memory
+	B delay_loop
+delay_03s:
+	LDR R3, DELAY_COUNT_03S
+	B delay_loop
+delay_loop:
+    SUBS R3, R3, #1          @ Decrement delay counter
+    BNE delay_loop           @ If not zero, continue loop
+    BX LR                    @ Return from delay
 
 @ LITERALS; DO NOT EDIT
 	.align
@@ -47,4 +57,7 @@ AHBENR_GPIOAB: 		.word 0b1100000000000000000
 GPIOA_BASE:  		.word 0x48000000
 GPIOB_BASE:  		.word 0x48000400
 MODER_OUTPUT: 		.word 0x5555
+
+DELAY_COUNT_07S:  	.word 1000000            @ Approximate delay count for 0.7 second
+DELAY_COUNT_03S:	.word 300000             @ 0.3 second
 
