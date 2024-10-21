@@ -33,9 +33,20 @@ ASM_Main:
 	MOVS R2, #0         	@ NOTE: R2 will be dedicated to holding the value on the LEDs
 
 @ TODO: Add code, labels and logic for button checks and LED patterns
+main_loop:
+    LDR R3, [R0, #0x10]      @ Read GPIOA input register
 
+    B default
 
+default:
+	STR R2, [R1, #0x14]      @ Write the current LED pattern to GPIOB ODR
+	BL delay_07s             @ Call delay function for 0.7 seconds
+	ADDS R2, R2, #1          @ Increment the LED count by 1 (binary count)
+	@ Check if R2 has reached the maximum binary count
+	CMP R2, #0b11111111     @ Compare with LED7 (0x80)
+	BGT reset_leds           @ If greater than LED7, reset the LEDs
 
+	B main_loop
 
 @ TODO: Add your own values for these delays
 
